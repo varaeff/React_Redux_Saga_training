@@ -1,27 +1,30 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import {
-  compose,
-  legacy_createStore as createStore,
-  applyMiddleware,
-} from "redux";
+import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
-import { thunk } from "redux-thunk";
 import createSagaMiddleware from "redux-saga";
 import App from "./App";
-import { rootReducer } from "./redux/rootReducer";
 import { forbiddenWordsMiddleware } from "./redux/middleware";
 import { sagaWatcher } from "./redux/sagas";
+import { postsReducer } from "./redux/postsReduser";
+import { appReducer } from "./redux/appReducer";
 
 const saga = createSagaMiddleware();
 
-const store = createStore(
-  rootReducer,
-  compose(
-    applyMiddleware(thunk, forbiddenWordsMiddleware, saga),
-    window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
-  )
-);
+const store = configureStore({
+  reducer: {
+    posts: postsReducer,
+    app: appReducer,
+  },
+  middleware: (getDefaultMiddleware) => {
+    const middleware = getDefaultMiddleware().concat(
+      forbiddenWordsMiddleware,
+      saga
+    );
+
+    return middleware;
+  },
+});
 
 saga.run(sagaWatcher);
 
